@@ -1,9 +1,5 @@
-# This is a sample Python script.
-
-# Press Shift+F10 to execute it or replace it with your code.
-# Press Double Shift to search everywhere for classes, files, tool windows, actions, and settings.
-
-from PyQt5.QtWidgets import QWidget, QApplication, QGridLayout, QPushButton, QLineEdit, QTextEdit
+from PyQt5.QtWidgets import QWidget, QApplication, QGridLayout
+from PyQt5.QtWidgets import QPushButton, QTextEdit, QMessageBox
 from PyQt5.QtWidgets import QTableWidget, QTableWidgetItem, QCheckBox
 from PyQt5.QtCore import Qt
 from PyQt5 import QtGui
@@ -31,8 +27,6 @@ class Window(QWidget):
         self.table.setHorizontalHeaderLabels(["필수값 여부", "필드명", "타입", "필드값"])
 
         self.table.setSortingEnabled(True)  # 정렬 가능
-        # self.table.sortByColumn(1, Qt.AscendingOrder)
-
 
         # 결과 텍스트 생성 버튼
         self.rslt_btn = QPushButton("Make markdown table!")
@@ -41,11 +35,17 @@ class Window(QWidget):
         # 결과 텍스트
         self.dest_text = QTextEdit()
 
+        # 결과 텍스트 클립보드 복사
+        self.copy_btn = QPushButton('Copy!')
+        self.copy_btn.clicked.connect(self.copy_to_clipboard)
+
+        # 위젯 삽입
         self.layout.addWidget(self.src_text, 0, 0)
         self.layout.addWidget(self.insert_btn, 1, 0)
         self.layout.addWidget(self.table, 0, 1)
         self.layout.addWidget(self.rslt_btn, 1, 1)
         self.layout.addWidget(self.dest_text, 2, 1)
+        self.layout.addWidget(self.copy_btn, 3, 1)
 
         self.setLayout(self.layout)
 
@@ -90,15 +90,15 @@ class Window(QWidget):
             elif isinstance(value, dict):
                 data_type = 'Object'
 
-            # [!중요] 모든 필드값을 str으로 형변환하여 테이블에 삽입
+            # [!중요] 모든 필드값을 str으로 형변환하여 테이블에 삽입해야 함
             value = str(value)
 
             # 체크박스
             checkbox = QCheckBox()
-            if value and not value.isspace():  # 필수값 자동 체크
+            if value and not value.isspace():  # 필수값 자동 체크 -빈 문자열 확인
                 checkbox.setChecked(True)
 
-            print(idx, key, value, data_type)
+            # print(idx, key, value, data_type)
 
             self.table.setCellWidget(idx, 0, checkbox)  # 체크박스
             self.table.setItem(idx, 1, QTableWidgetItem(key))  # 필드명
@@ -136,6 +136,15 @@ class Window(QWidget):
         # print(header_str + data_str)
 
         self.dest_text.setText(header_str + data_str)
+
+    def copy_to_clipboard(self):
+
+        cb = QApplication.clipboard()
+        cb.clear(mode=cb.Clipboard)
+        cb.setText(self.dest_text.toPlainText(), mode=cb.Clipboard)
+
+        # alert
+        QMessageBox.about(self, "Message", "Copied!")
 
 def print_hi(name):
     # Use a breakpoint in the code line below to debug your script.
